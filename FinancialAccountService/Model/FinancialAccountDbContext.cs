@@ -11,7 +11,12 @@ namespace FinancialAccountService.Model
         /// <summary>
         /// Датасет пользователей
         /// </summary>
-        public DbSet<User> User { get; set; }
+        public DbSet<User> Users { get; set; }
+        
+        /// <summary>
+        /// Датасет транзакций баланса
+        /// </summary>
+        public DbSet<BalanceTransaction> BalanceTransactions { get; set; }
 
         public FinancialAccountDbContext(DbContextOptions<FinancialAccountDbContext> options):base(options)
         {

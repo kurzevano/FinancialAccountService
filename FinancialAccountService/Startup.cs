@@ -29,6 +29,7 @@ namespace FinancialAccountService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSwaggerGen();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddDbContext<FinancialAccountDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("FinancialAccountDb")));
@@ -37,10 +38,17 @@ namespace FinancialAccountService
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseSwagger();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "FinancialAccount API");
+            });
 
             app.UseHttpsRedirection();
 

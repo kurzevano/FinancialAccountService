@@ -28,7 +28,7 @@ namespace FinancialAccountService.Controllers
         [HttpGet("Balance/{userId}")]
         public async Task<ActionResult<decimal>> GetBalance(int userId)
         {
-            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            var user = await _dbContext.Users.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
@@ -52,7 +52,7 @@ namespace FinancialAccountService.Controllers
         [HttpPost("deposit")]
         public async Task<ActionResult> Deposit(int userId, decimal summ)
         {
-            var user = _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefault(User => User.Id == userId);
+            var user = _dbContext.Users.Include(x => x.CurrentBalance).FirstOrDefault(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
@@ -80,7 +80,7 @@ namespace FinancialAccountService.Controllers
         [HttpPost("withdrawal")]
         public async Task<ActionResult> Withdraw(int userId, decimal summ)
         {
-            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            var user = await _dbContext.Users.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
