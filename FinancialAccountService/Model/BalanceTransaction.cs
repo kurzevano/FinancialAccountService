@@ -20,5 +20,9 @@
         /// </summary>
         public decimal Summ { get; set; }
 
+        /// <summary>
+        /// id баланса пользователя
+        /// </summary>
+        public int? BalanceId { get; set; }
     }
 }

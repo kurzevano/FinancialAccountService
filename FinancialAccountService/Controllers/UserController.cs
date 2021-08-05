@@ -34,7 +34,7 @@ namespace FinancialAccountService.Controllers
                 DateBirth = new System.DateTime(),
             };
 
-            _dbContext.Users.Add(user);
+            _dbContext.User.Add(user);
             await _dbContext.SaveChangesAsync();
         }
 
@@ -45,7 +45,7 @@ namespace FinancialAccountService.Controllers
         [HttpGet("users")]
         public ActionResult<IEnumerable<User>> GetUsers()
         {
-            return _dbContext.Users.Include(x => x.CurrentBalance).ToList();
+            return _dbContext.User.Include(x => x.CurrentBalance).ThenInclude(x=>x.BalanceTransactions).ToList();
         }
     }
 }

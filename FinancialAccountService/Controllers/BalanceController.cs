@@ -28,7 +28,7 @@ namespace FinancialAccountService.Controllers
         [HttpGet("Balance/{userId}")]
         public async Task<ActionResult<decimal>> GetBalance(int userId)
         {
-            var user = await _dbContext.Users.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
@@ -52,7 +52,7 @@ namespace FinancialAccountService.Controllers
         [HttpPost("deposit")]
         public async Task<ActionResult> Deposit(int userId, decimal summ)
         {
-            var user = _dbContext.Users.Include(x => x.CurrentBalance).FirstOrDefault(User => User.Id == userId);
+            var user = _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefault(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
@@ -62,9 +62,12 @@ namespace FinancialAccountService.Controllers
             if (balance == null)
             {
                 user.CurrentBalance = new Balance();
+                await _dbContext.SaveChangesAsync();
             }
 
-            user.CurrentBalance.BalanceTransactions.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ });
+            var balanceId = user.CurrentBalance.Id;
+
+            _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ, BalanceId = balanceId });
             user.CurrentBalance.Summ += summ;
 
             await _dbContext.SaveChangesAsync();
@@ -80,7 +83,7 @@ namespace FinancialAccountService.Controllers
         [HttpPost("withdrawal")]
         public async Task<ActionResult> Withdraw(int userId, decimal summ)
         {
-            var user = await _dbContext.Users.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
@@ -99,7 +102,8 @@ namespace FinancialAccountService.Controllers
                 return BadRequest("Недостаточно средств для списания");
             }
 
-            user.CurrentBalance.BalanceTransactions.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ });
+            var balanceId = user.CurrentBalance.Id;
+            user.CurrentBalance.BalanceTransactions.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ, BalanceId = balanceId });
             user.CurrentBalance.Summ -= summ;
 
             await _dbContext.SaveChangesAsync();
