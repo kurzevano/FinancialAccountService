@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FinancialAccountService.Database
+namespace FinancialAccountService.Model
 {
     /// <summary>
     /// Текущий баланс пользователя
@@ -16,7 +16,6 @@ namespace FinancialAccountService.Database
         /// Текущий остаток на счёте
         /// </summary>
         public decimal Summ { get; set; }
-
 
         /// <summary>
         /// История операций на счёте пользователя

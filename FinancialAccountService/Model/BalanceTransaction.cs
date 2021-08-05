@@ -1,4 +1,4 @@
-﻿namespace FinancialAccountService.Database
+﻿namespace FinancialAccountService.Model
 {
     /// <summary>
     /// Транзакция денежных стредств на счёте пользователя (пополнение или списание)

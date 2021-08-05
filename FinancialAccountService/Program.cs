@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FinancialAccountService.Database;
+using FinancialAccountService.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +16,6 @@ namespace FinancialAccountService
         public static void Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-
 
             //using (var scope = host.Services.CreateScope())
             //{

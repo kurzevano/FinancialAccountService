@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace FinancialAccountService.Database
+namespace FinancialAccountService.Model
 {
     /// <summary>
     /// Пользователь

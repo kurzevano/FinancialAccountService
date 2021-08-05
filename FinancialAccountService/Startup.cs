@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FinancialAccountService.Database;
+using FinancialAccountService.Model;
 using FinancialAccountService.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,7 +31,7 @@ namespace FinancialAccountService
             services.AddControllers();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddDbContext<FinancialAccountDbContext>(options =>
-                options.UseSqlite(Configuration.GetConnectionString("ConnectionString")));
+                options.UseSqlite(Configuration.GetConnectionString("FinancialAccountDb")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
