@@ -12,14 +12,16 @@ namespace FinancialAccountService.Dto
     public class CreateUserDto
     {
         /// <summary>
-        /// Фамилия
-        /// </summary>
-        public string LastName { get; set; }
-
-        /// <summary>
         /// Имя
         /// </summary>
+        [Required(ErrorMessage = "Не указано имя")]
         public string FirstName { get; set; }
+
+        /// <summary>
+        /// Фамилия
+        /// </summary>
+        [Required(ErrorMessage = "Не указана фамилия")]
+        public string LastName { get; set; }
 
         /// <summary>
         /// Отчество
@@ -29,7 +31,6 @@ namespace FinancialAccountService.Dto
         /// <summary>
         /// Дата рождения
         /// </summary>
-        public DateTime DateBirth { get; set; }
-
+        public DateTime? DateBirth { get; set; }
     }
 }

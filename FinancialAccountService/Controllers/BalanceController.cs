@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FinancialAccountService.Dto;
 using FinancialAccountService.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,12 +47,19 @@ namespace FinancialAccountService.Controllers
         /// <summary>
         /// Начисляет сумму на счёт клиента
         /// </summary>
-        /// <param name="userId">id пользователя</param>
-        /// <param name="summ">Сумма пополнения</param>
+        /// <param name="changeBalanceDto"></param>
         /// <returns></returns>
         [HttpPost("deposit")]
-        public async Task<ActionResult> Deposit(int userId, decimal summ)
+        public async Task<ActionResult> Deposit(ChangeBalanceDto changeBalanceDto)
         {
+            var userId = changeBalanceDto.UserId;
+            var summ = changeBalanceDto.Summ;
+
+            if (summ <= 0)
+            {
+                return ValidationProblem($"Неверно указана сумма");
+            }
+
             var user = _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefault(User => User.Id == userId);
             if (user == null)
             {
@@ -77,12 +85,20 @@ namespace FinancialAccountService.Controllers
         /// <summary>
         /// Списывает сумму со счёта клиента
         /// </summary>
-        /// <param name="userId">id пользователя</param>
-        /// <param name="summ">Сумма списания</param>
+        /// <param name="changeBalanceDto"></param>
         /// <returns></returns>
         [HttpPost("withdrawal")]
-        public async Task<ActionResult> Withdraw(int userId, decimal summ)
+        public async Task<ActionResult> Withdraw(ChangeBalanceDto changeBalanceDto)
         {
+            var userId = changeBalanceDto.UserId;
+            var summ = changeBalanceDto.Summ;
+
+
+            if (summ <= 0)
+            {
+                return ValidationProblem($"Неверно указана сумма");
+            }
+
             var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
             {
@@ -103,7 +119,7 @@ namespace FinancialAccountService.Controllers
             }
 
             var balanceId = user.CurrentBalance.Id;
-            user.CurrentBalance.BalanceTransactions.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ, BalanceId = balanceId });
+            _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ, BalanceId = balanceId });
             user.CurrentBalance.Summ -= summ;
 
             await _dbContext.SaveChangesAsync();

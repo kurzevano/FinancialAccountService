@@ -23,6 +23,6 @@
         /// <summary>
         /// id баланса пользователя
         /// </summary>
-        public int? BalanceId { get; set; }
+        public int BalanceId { get; set; }
     }
 }
