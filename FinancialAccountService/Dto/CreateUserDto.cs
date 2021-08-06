@@ -1,25 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Web;
+using System.Threading.Tasks;
 
-namespace FinancialAccountService.Model
+namespace FinancialAccountService.Dto
 {
     /// <summary>
-    /// Пользователь
+    /// Dto для класса User
     /// </summary>
-    public class User
+    public class CreateUserDto
     {
-        /// <summary>
-        /// Идентификатор
-        /// </summary>
-        public int Id { get; set; }
-
         /// <summary>
         /// Фамилия
         /// </summary>
         public string LastName { get; set; }
-        
+
         /// <summary>
         /// Имя
         /// </summary>
@@ -35,14 +31,5 @@ namespace FinancialAccountService.Model
         /// </summary>
         public DateTime DateBirth { get; set; }
 
-        /// <summary>
-        /// Ссылка на баланс пользователя
-        /// </summary>
-        public int? BalanceId { get; set; }
-
-        /// <summary>
-        /// Текущий баланс пользователя
-        /// </summary>
-        public Balance CurrentBalance { get; set; }
     }
 }

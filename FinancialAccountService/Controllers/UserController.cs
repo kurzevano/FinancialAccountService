@@ -1,4 +1,6 @@
-﻿using FinancialAccountService.Model;
+﻿using AutoMapper;
+using FinancialAccountService.Dto;
+using FinancialAccountService.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,26 +16,21 @@ namespace FinancialAccountService.Controllers
     {
         private readonly FinancialAccountDbContext _dbContext;
 
-        public UserController(FinancialAccountDbContext dbContext)
+        private readonly IMapper _mapper;
+
+        public UserController(FinancialAccountDbContext dbContext, IMapper mapper)
         {
             this._dbContext = dbContext;
+            this._mapper = mapper;
         }
 
         /// <summary>
         /// Регистрирует нового пользователя
         /// </summary>
         [HttpPost]
-        public async void RegisterUser()
+        public async void RegisterUser(CreateUserDto createUserDto)
         {
-            var user = new User()
-            {
-                FirstName = "Кабан",
-                LastName = "Петров",
-                MiddleName = "Иванович",
-                CurrentBalance = new Balance(),
-                DateBirth = new System.DateTime(),
-            };
-
+            var user = _mapper.Map<User>(createUserDto);
             _dbContext.User.Add(user);
             await _dbContext.SaveChangesAsync();
         }

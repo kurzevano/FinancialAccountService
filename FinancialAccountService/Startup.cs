@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using FinancialAccountService.AutoMapper;
 using FinancialAccountService.Model;
 using FinancialAccountService.Repository;
 using Microsoft.AspNetCore.Builder;
@@ -33,6 +35,17 @@ namespace FinancialAccountService
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddDbContext<FinancialAccountDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("FinancialAccountDb")));
+
+            // Auto Mapper Configurations
+            var mapperConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new AutoMapperProfile());
+            });
+
+            IMapper mapper = mapperConfig.CreateMapper();
+            services.AddSingleton(mapper);
+
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
