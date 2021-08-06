@@ -11,7 +11,7 @@ namespace FinancialAccountService.Model
         /// <summary>
         /// Датасет пользователей
         /// </summary>
-        public DbSet<User> User { get; set; }
+        public virtual DbSet<User> User { get; set; }
         
         /// <summary>
         /// Датасет транзакций баланса

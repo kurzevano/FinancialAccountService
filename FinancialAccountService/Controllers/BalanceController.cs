@@ -93,7 +93,6 @@ namespace FinancialAccountService.Controllers
             var userId = changeBalanceDto.UserId;
             var summ = changeBalanceDto.Summ;
 
-
             if (summ <= 0)
             {
                 return ValidationProblem($"Неверно указана сумма");
