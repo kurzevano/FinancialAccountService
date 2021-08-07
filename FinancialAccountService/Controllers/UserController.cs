@@ -36,6 +36,16 @@ namespace FinancialAccountService.Controllers
         }
 
         /// <summary>
+        /// Получает пользователя по id
+        /// </summary>
+        [HttpGet("user/{userId}")]
+        public async Task<User> GetUser(int userId)
+        {
+            var user = await _dbContext.User.FirstOrDefaultAsync(user => user.Id == userId);
+            return user;
+        }
+
+        /// <summary>
         /// Получает список зарегистрированных пользователей
         /// </summary>
         /// <returns></returns>

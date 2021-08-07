@@ -16,7 +16,7 @@ namespace FinancialAccountService.Model
         /// <summary>
         /// Датасет транзакций баланса
         /// </summary>
-        public DbSet<BalanceTransaction> BalanceTransaction { get; set; }
+        public virtual DbSet<BalanceTransaction> BalanceTransaction { get; set; }
 
         public FinancialAccountDbContext(DbContextOptions<FinancialAccountDbContext> options):base(options)
         {
