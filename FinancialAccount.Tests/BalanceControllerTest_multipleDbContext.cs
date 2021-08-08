@@ -27,10 +27,11 @@ namespace FinancialAccount.Tests
         /// <summary>
         /// Заполняет БД с указанным именем тестовыми данными
         /// </summary>
-        private void CreateTestDatabase()
+        private string CreateTestDatabase()
         {
+            var dbName = Guid.NewGuid().ToString();
             using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-           .UseInMemoryDatabase(databaseName: databaseName)
+           .UseInMemoryDatabase(databaseName: dbName)
            .Options);
 
             if (!dbContext.Set<User>().Any())
@@ -40,13 +41,14 @@ namespace FinancialAccount.Tests
                 dbContext.User.AddRange(fakesUsers.AsQueryable());
                 dbContext.SaveChanges();
             }
+
+            return dbName;
         }
 
         [SetUp]
         public void Setup()
         {
-            databaseName = Guid.NewGuid().ToString();
-            CreateTestDatabase();
+           databaseName = CreateTestDatabase();
         }
 
         [Test]
