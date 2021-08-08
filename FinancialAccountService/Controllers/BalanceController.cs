@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FinancialAccountService.Dto;
 using FinancialAccountService.Model;
@@ -14,6 +15,7 @@ namespace FinancialAccountService.Controllers
     [ApiController]
     public class BalanceController : ControllerBase
     {
+        private static SemaphoreSlim semaphore = new SemaphoreSlim(2,2);
         private readonly FinancialAccountDbContext _dbContext;
 
         public BalanceController(FinancialAccountDbContext dbContext)
@@ -59,27 +61,34 @@ namespace FinancialAccountService.Controllers
             {
                 return ValidationProblem($"Неверно указана сумма");
             }
-
-            var user = _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefault(User => User.Id == userId);
-            if (user == null)
+            await semaphore.WaitAsync();
+            try
             {
-                return NotFound($"Пользователь с id  {userId} не найден");
-            }
+                var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+                if (user == null)
+                {
+                    return NotFound($"Пользователь с id  {userId} не найден");
+                }
 
-            var balance = user.CurrentBalance;
-            if (balance == null)
-            {
-                user.CurrentBalance = new Balance();
+                var balance = user.CurrentBalance;
+                if (balance == null)
+                {
+                    user.CurrentBalance = new Balance();
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                var balanceId = user.CurrentBalance.Id;
+
+                _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ, BalanceId = balanceId });
+                user.CurrentBalance.Summ += summ;
+
                 await _dbContext.SaveChangesAsync();
+                return Ok();
             }
-
-            var balanceId = user.CurrentBalance.Id;
-
-            _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ, BalanceId = balanceId });
-            user.CurrentBalance.Summ += summ;
-
-            await _dbContext.SaveChangesAsync();
-            return Ok();
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /// <summary>
