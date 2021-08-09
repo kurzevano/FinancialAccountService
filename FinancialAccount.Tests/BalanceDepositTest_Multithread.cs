@@ -35,7 +35,7 @@ namespace FinancialAccount.Tests
         [SetUp]
         public void Setup()
         { 
-            databaseName = TestUtils.CreateTestDatabase(out fakesUsers, 100);
+            databaseName = TestUtils.CreateTestDatabase(out fakesUsers);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace FinancialAccount.Tests
 
             var balanceController = new BalanceController(dbContext);
 
-            fakesUsers.ForEach(user => Assert.IsTrue(balanceController.GetBalance(user.Id).GetAwaiter().GetResult().Value == sumToDeposit));
+            fakesUsers.ForEach(user => Assert.AreEqual(balanceController.GetBalance(user.Id).GetAwaiter().GetResult().Value, sumToDeposit));
         }
 
         /// <summary>

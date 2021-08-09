@@ -62,15 +62,15 @@ namespace FinancialAccountService.Controllers
             {
                 return ValidationProblem($"Неверно указана сумма");
             }
-            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
-            if (user == null)
-            {
-                return NotFound($"Пользователь с id  {userId} не найден");
-            }
 
             await semaphoreBalance.WaitAsync();
             try
             {
+                var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            if (user == null)
+            {
+                return NotFound($"Пользователь с id  {userId} не найден");
+            }
                 var balance = user.CurrentBalance;
                 if (balance == null)
                 {
