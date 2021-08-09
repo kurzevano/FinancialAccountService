@@ -9,19 +9,19 @@ namespace FinancialAccountService.Dto
     /// <summary>
     /// Dto для класса User
     /// </summary>
-    public class CreateUserDto
+    public class UserDto
     {
-        /// <summary>
-        /// Имя
-        /// </summary>
-        [Required(ErrorMessage = "Не указано имя")]
-        public string FirstName { get; set; }
-
         /// <summary>
         /// Фамилия
         /// </summary>
         [Required(ErrorMessage = "Не указана фамилия")]
         public string LastName { get; set; }
+
+        /// <summary>
+        /// Имя
+        /// </summary>
+        [Required(ErrorMessage = "Не указано имя")]
+        public string FirstName { get; set; }
 
         /// <summary>
         /// Отчество

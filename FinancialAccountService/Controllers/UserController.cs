@@ -28,7 +28,7 @@ namespace FinancialAccountService.Controllers
         /// Регистрирует нового пользователя
         /// </summary>
         [HttpPost]
-        public async void RegisterUser(CreateUserDto createUserDto)
+        public async void RegisterUser(UserDto createUserDto)
         {
             var user = _mapper.Map<User>(createUserDto);
             _dbContext.User.Add(user);
@@ -39,10 +39,10 @@ namespace FinancialAccountService.Controllers
         /// Получает пользователя по id
         /// </summary>
         [HttpGet("user/{userId}")]
-        public async Task<User> GetUser(int userId)
+        public async Task<UserDto> GetUser(int userId)
         {
             var user = await _dbContext.User.FirstOrDefaultAsync(user => user.Id == userId);
-            return user;
+            return _mapper.Map<UserDto>(user);
         }
 
         /// <summary>
@@ -52,7 +52,8 @@ namespace FinancialAccountService.Controllers
         [HttpGet("users")]
         public ActionResult<IEnumerable<User>> GetUsers()
         {
-            return _dbContext.User.Include(x => x.CurrentBalance).ThenInclude(x=>x.BalanceTransactions).ToList();
+            // Здесь намеренно делаем Include Balance и Include Transactions, чтобы посмотреть всё, что находится в базе
+            return _dbContext.User.Include(x => x.CurrentBalance).ThenInclude(x => x.BalanceTransactions).ToList();
         }
     }
 }

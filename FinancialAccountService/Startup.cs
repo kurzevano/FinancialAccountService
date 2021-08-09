@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FinancialAccountService.AutoMapper;
 using FinancialAccountService.Model;
-using FinancialAccountService.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,7 +31,6 @@ namespace FinancialAccountService
         {
             services.AddControllers();
             services.AddSwaggerGen();
-            services.AddScoped<IUserRepository, UserRepository>();
             services.AddDbContext<FinancialAccountDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("FinancialAccountDb")));
 

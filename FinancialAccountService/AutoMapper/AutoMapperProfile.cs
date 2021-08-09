@@ -12,8 +12,8 @@ namespace FinancialAccountService.AutoMapper
     {
         public AutoMapperProfile()
         {
-            CreateMap<User, CreateUserDto>();
-            CreateMap<CreateUserDto, User>();
+            CreateMap<User, UserDto>();
+            CreateMap<UserDto, User>();
         }
     }
 }

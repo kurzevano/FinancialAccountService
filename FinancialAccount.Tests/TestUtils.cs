@@ -9,6 +9,9 @@ namespace FinancialAccount.Tests
 {
     internal static class TestUtils
     {
+        /// <summary>
+        /// Количество тестовых полььзователей
+        /// </summary>
         internal const int FakeUsersCount = 50;
 
         /// <summary>

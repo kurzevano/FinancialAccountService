@@ -17,6 +17,7 @@ namespace FinancialAccountService.Controllers
     {
         // Семафор для блокировки одновременного доступа к балансу пользователя
         private static SemaphoreSlim semaphoreBalance = new SemaphoreSlim(1, 1);
+
         private readonly FinancialAccountDbContext _dbContext;
 
         public BalanceController(FinancialAccountDbContext dbContext)
@@ -67,10 +68,10 @@ namespace FinancialAccountService.Controllers
             try
             {
                 var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
-            if (user == null)
-            {
-                return NotFound($"Пользователь с id  {userId} не найден");
-            }
+                if (user == null)
+                {
+                    return NotFound($"Пользователь с id  {userId} не найден");
+                }
                 var balance = user.CurrentBalance;
                 if (balance == null)
                 {

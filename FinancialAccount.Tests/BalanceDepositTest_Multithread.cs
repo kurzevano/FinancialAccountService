@@ -43,7 +43,9 @@ namespace FinancialAccount.Tests
         /// </summary>
         [Test]
         public void TestDeposit_multipleDbContext()
-        {       
+        {
+            // act
+
             Parallel.ForEach(fakesUsers, new ParallelOptions() { MaxDegreeOfParallelism = threadNumber }, user =>
             {
                 using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
@@ -57,6 +59,8 @@ namespace FinancialAccount.Tests
                     Summ = sumToDeposit
                 }).GetAwaiter().GetResult();
             });
+
+            // assert
 
             using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
                     .UseInMemoryDatabase(databaseName: databaseName)
@@ -73,6 +77,8 @@ namespace FinancialAccount.Tests
         [Test]
         public void BalanceDepositTest()
         {
+            // act
+
             foreach (var user in fakesUsers)
             {
                 var result = Parallel.For(1, threadNumber + 1, (i, state) =>
@@ -89,6 +95,8 @@ namespace FinancialAccount.Tests
                     }).GetAwaiter().GetResult();
                 });
             }
+
+            // assert
 
             // Формула арифметической прогрессии
             var sumTotal = (1 + threadNumber) * threadNumber / 2;
