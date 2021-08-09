@@ -13,6 +13,16 @@ namespace FinancialAccount.Tests
     public class BalanceDepositTest_Multithread
     {
         /// <summary>
+        /// Тестовая сумма для пополнения
+        /// </summary>
+        const decimal sumToDeposit = 42;
+
+        /// <summary>
+        /// Количество потоков в тесте
+        /// </summary>
+        const int threadNumber = 10;
+
+        /// <summary>
         /// Имя тестовой БД
         /// </summary>
         private string databaseName;
@@ -24,18 +34,17 @@ namespace FinancialAccount.Tests
 
         [SetUp]
         public void Setup()
-        {
-            databaseName = TestUtils.CreateTestDatabase(out fakesUsers);
+        { 
+            databaseName = TestUtils.CreateTestDatabase(out fakesUsers, 100);
         }
 
         /// <summary>
-        /// Каждому пользователю один раз пополняет баланс, но разные пользователи в разных потоках
+        /// Каждому пользователю один раз пополняет баланс, разные пользователи в разных потоках
         /// </summary>
         [Test]
         public void TestDeposit_multipleDbContext()
-        {
-            decimal sumToDeposit = 42;
-            Parallel.ForEach(fakesUsers, new ParallelOptions() { MaxDegreeOfParallelism = 10 }, user =>
+        {       
+            Parallel.ForEach(fakesUsers, new ParallelOptions() { MaxDegreeOfParallelism = threadNumber }, user =>
             {
                 using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
                     .UseInMemoryDatabase(databaseName: databaseName)
@@ -59,16 +68,14 @@ namespace FinancialAccount.Tests
         }
 
         /// <summary>
-        /// Каждому пользователю в 10 потоках пополняет баланс
+        /// Каждому пользователю многопоточно пополняет баланс
         /// </summary>
         [Test]
         public void BalanceDepositTest()
         {
-            int threadNumber = 10;
-
             foreach (var user in fakesUsers)
             {
-                var result = Parallel.For(1, threadNumber+1, (i, state) =>
+                var result = Parallel.For(1, threadNumber + 1, (i, state) =>
                 {
                     using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
                     .UseInMemoryDatabase(databaseName: databaseName)
@@ -85,6 +92,7 @@ namespace FinancialAccount.Tests
 
             // Формула арифметической прогрессии
             var sumTotal = (1 + threadNumber) * threadNumber / 2;
+
             using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
                 .UseInMemoryDatabase(databaseName: databaseName).Options);
 

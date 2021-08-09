@@ -15,27 +15,35 @@ namespace FinancialAccount.Tests
         /// Создаёт список пользователей для теста
         /// </summary>
         /// <returns></returns>
-        internal static List<User> GetFakeUsers()
+        internal static List<User> GetFakeUsers(decimal initialBalance = 0)
         {
             var users = new List<User>();
             for (int i = 0; i < FakeUsersCount; i++)
             {
-                users.Add(new User
+                var user = new User
                 {
                     Id = i + 1,
                     FirstName = $"Name{i}",
                     LastName = $"Lastaname{i}",
                     MiddleName = $"Lastaname{i}"
-                });
+                };
+
+                user.CurrentBalance = new Balance() { Id = user.Id, Summ = initialBalance };
+                user.BalanceId = user.CurrentBalance.Id;
+
+                users.Add(user);
             }
 
             return users;
         }
 
         /// <summary>
-        /// Заполняет БД с указанным именем тестовыми данными
+        /// Создаёт новую БД в памяти и наполняет тестовыми данными
         /// </summary>
-        internal static string CreateTestDatabase(out List<User> fakeUsers)
+        /// <param name="fakeUsers">Список тестовых пользователей</param>
+        /// <param name="initialBalance">Начальный баланс каждого пользователя</param>
+        /// <returns></returns>
+        internal static string CreateTestDatabase(out List<User> fakeUsers, decimal initialBalance = 0)
         {
             fakeUsers = new List<User>();
             var dbName = Guid.NewGuid().ToString();
@@ -45,7 +53,7 @@ namespace FinancialAccount.Tests
 
             if (!dbContext.Set<User>().Any())
             {
-                fakeUsers = TestUtils.GetFakeUsers();
+                fakeUsers = TestUtils.GetFakeUsers(initialBalance);
 
                 dbContext.User.AddRange(fakeUsers.AsQueryable());
                 dbContext.SaveChanges();

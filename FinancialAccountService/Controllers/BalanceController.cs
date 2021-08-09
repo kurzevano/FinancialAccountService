@@ -15,7 +15,8 @@ namespace FinancialAccountService.Controllers
     [ApiController]
     public class BalanceController : ControllerBase
     {
-        private static SemaphoreSlim semaphore = new SemaphoreSlim(2,2);
+        // Семафор для блокировки одновременного доступа к балансу пользователя
+        private static SemaphoreSlim semaphoreBalance = new SemaphoreSlim(1, 1);
         private readonly FinancialAccountDbContext _dbContext;
 
         public BalanceController(FinancialAccountDbContext dbContext)
@@ -61,15 +62,15 @@ namespace FinancialAccountService.Controllers
             {
                 return ValidationProblem($"Неверно указана сумма");
             }
-            await semaphore.WaitAsync();
+            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            if (user == null)
+            {
+                return NotFound($"Пользователь с id  {userId} не найден");
+            }
+
+            await semaphoreBalance.WaitAsync();
             try
             {
-                var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
-                if (user == null)
-                {
-                    return NotFound($"Пользователь с id  {userId} не найден");
-                }
-
                 var balance = user.CurrentBalance;
                 if (balance == null)
                 {
@@ -87,7 +88,7 @@ namespace FinancialAccountService.Controllers
             }
             finally
             {
-                semaphore.Release();
+                semaphoreBalance.Release();
             }
         }
 
@@ -107,31 +108,39 @@ namespace FinancialAccountService.Controllers
                 return ValidationProblem($"Неверно указана сумма");
             }
 
-            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
-            if (user == null)
+            await semaphoreBalance.WaitAsync();
+            try
             {
-                return NotFound($"Пользователь с id  {userId} не найден");
-            }
+                var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+                if (user == null)
+                {
+                    return NotFound($"Пользователь с id  {userId} не найден");
+                }
 
-            var balance = user.CurrentBalance;
-            if (balance == null)
+                var balance = user.CurrentBalance;
+                if (balance == null)
+                {
+                    return NotFound($"Не найдена информация о балансе для пользователя с id  {userId}");
+                }
+
+                var isEnough = balance.Summ > summ;
+
+                if (!isEnough)
+                {
+                    return BadRequest("Недостаточно средств для списания");
+                }
+
+                var balanceId = user.CurrentBalance.Id;
+                _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ, BalanceId = balanceId });
+                user.CurrentBalance.Summ -= summ;
+
+                await _dbContext.SaveChangesAsync();
+                return Ok();
+            }
+            finally
             {
-                return NotFound($"Не найдена информация о балансе для пользователя с id  {userId}");
+                semaphoreBalance.Release();
             }
-
-            var isEnough = balance.Summ > summ;
-
-            if (!isEnough)
-            {
-                return BadRequest("Недостаточно средств для списания");
-            }
-
-            var balanceId = user.CurrentBalance.Id;
-            _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ, BalanceId = balanceId });
-            user.CurrentBalance.Summ -= summ;
-
-            await _dbContext.SaveChangesAsync();
-            return Ok();
         }
     }
 }
