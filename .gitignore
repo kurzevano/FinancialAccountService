@@ -75,3 +75,5 @@ msbuild.wrn
 *.userosscache
 *.sln.docstates
 *.pubxml
+
+*FinancialAccount.db

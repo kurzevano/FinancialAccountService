@@ -36,7 +36,7 @@ namespace FinancialAccountService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BalanceId")
+                    b.Property<int>("BalanceId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("OperationTtype")
@@ -84,7 +84,9 @@ namespace FinancialAccountService.Migrations
                 {
                     b.HasOne("FinancialAccountService.Model.Balance", null)
                         .WithMany("BalanceTransactions")
-                        .HasForeignKey("BalanceId");
+                        .HasForeignKey("BalanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FinancialAccountService.Model.User", b =>

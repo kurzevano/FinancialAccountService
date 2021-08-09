@@ -28,7 +28,7 @@ namespace FinancialAccountService.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     OperationTtype = table.Column<bool>(type: "INTEGER", nullable: false),
                     Summ = table.Column<decimal>(type: "TEXT", nullable: false),
-                    BalanceId = table.Column<int>(type: "INTEGER", nullable: true)
+                    BalanceId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -38,7 +38,7 @@ namespace FinancialAccountService.Migrations
                         column: x => x.BalanceId,
                         principalTable: "Balance",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -51,7 +51,7 @@ namespace FinancialAccountService.Migrations
                     FirstName = table.Column<string>(type: "TEXT", nullable: true),
                     MiddleName = table.Column<string>(type: "TEXT", nullable: true),
                     DateBirth = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    BalanceId = table.Column<int>(type: "INTEGER", nullable: false)
+                    BalanceId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -61,7 +61,7 @@ namespace FinancialAccountService.Migrations
                         column: x => x.BalanceId,
                         principalTable: "Balance",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
