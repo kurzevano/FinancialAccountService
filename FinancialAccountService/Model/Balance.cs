@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace FinancialAccountService.Model
 {
@@ -15,6 +16,7 @@ namespace FinancialAccountService.Model
         /// <summary>
         /// Текущий остаток на счёте
         /// </summary>
+        [ConcurrencyCheck]
         public decimal Summ { get; set; }
 
         /// <summary>

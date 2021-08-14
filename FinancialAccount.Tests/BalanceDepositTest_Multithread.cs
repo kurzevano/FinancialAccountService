@@ -38,6 +38,12 @@ namespace FinancialAccount.Tests
             databaseName = TestUtils.CreateTestDatabase(out fakesUsers);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            TestUtils.DeleteTestDatabase(databaseName);
+        }
+
         /// <summary>
         /// Каждому пользователю один раз пополняет баланс, разные пользователи в разных потоках
         /// </summary>
@@ -48,9 +54,7 @@ namespace FinancialAccount.Tests
 
             Parallel.ForEach(fakesUsers, new ParallelOptions() { MaxDegreeOfParallelism = threadNumber }, user =>
             {
-                using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-                    .UseInMemoryDatabase(databaseName: databaseName)
-                    .Options);
+                using var dbContext = TestUtils.CreateDbContext(databaseName);
 
                 var balanceController = new BalanceController(dbContext);
                 balanceController.Deposit(new FinancialAccountService.Dto.ChangeBalanceDto()
@@ -62,11 +66,9 @@ namespace FinancialAccount.Tests
 
             // assert
 
-            using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-                    .UseInMemoryDatabase(databaseName: databaseName)
-                    .Options);
+            using var dbContext = TestUtils.CreateDbContext(databaseName);
 
-            var balanceController = new BalanceController(dbContext);
+            var balanceController = new BalanceController((FinancialAccountDbContext)dbContext);
 
             fakesUsers.ForEach(user => Assert.AreEqual(balanceController.GetBalance(user.Id).GetAwaiter().GetResult().Value, sumToDeposit));
         }
@@ -83,9 +85,7 @@ namespace FinancialAccount.Tests
             {
                 var result = Parallel.For(1, threadNumber + 1, (i, state) =>
                 {
-                    using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-                    .UseInMemoryDatabase(databaseName: databaseName)
-                    .Options);
+                    using var dbContext = TestUtils.CreateDbContext(databaseName);
 
                     var balanceController = new BalanceController(dbContext);
                     balanceController.Deposit(new FinancialAccountService.Dto.ChangeBalanceDto()
@@ -101,8 +101,7 @@ namespace FinancialAccount.Tests
             // Формула арифметической прогрессии
             var sumTotal = (1 + threadNumber) * threadNumber / 2;
 
-            using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-                .UseInMemoryDatabase(databaseName: databaseName).Options);
+            using var dbContext = TestUtils.CreateDbContext(databaseName);
 
             var balanceController = new BalanceController(dbContext);
 

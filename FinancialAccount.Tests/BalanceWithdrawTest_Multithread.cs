@@ -49,9 +49,7 @@ namespace FinancialAccount.Tests
             {
                 var result = Parallel.For(1, threadNumber + 1, (i, state) =>
                 {
-                    using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-                    .UseInMemoryDatabase(databaseName: databaseName)
-                    .Options);
+                    using var dbContext = TestUtils.CreateDbContext(databaseName);
 
                     var balanceController = new BalanceController(dbContext);
                     balanceController.Withdraw(new FinancialAccountService.Dto.ChangeBalanceDto()
@@ -73,8 +71,7 @@ namespace FinancialAccount.Tests
             // Остаток баланса
             var restBalance = initialSum - sumWithdraw;
 
-            using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-                .UseInMemoryDatabase(databaseName: databaseName).Options);
+            using var dbContext = TestUtils.CreateDbContext(databaseName);
 
             var balanceController = new BalanceController(dbContext);
 

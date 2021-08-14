@@ -23,6 +23,7 @@ namespace FinancialAccountService.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Summ")
+                        .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

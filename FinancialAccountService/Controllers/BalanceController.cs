@@ -64,33 +64,70 @@ namespace FinancialAccountService.Controllers
                 return ValidationProblem($"Неверно указана сумма");
             }
 
-            await semaphoreBalance.WaitAsync();
-            try
+            var saved = false;
+
+            var user = await _dbContext.User.Include(x => x.CurrentBalance).Include(b => b.CurrentBalance.BalanceTransactions).FirstOrDefaultAsync(User => User.Id == userId);
+            if (user == null)
             {
-                var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
-                if (user == null)
-                {
-                    return NotFound($"Пользователь с id  {userId} не найден");
-                }
-                var balance = user.CurrentBalance;
-                if (balance == null)
-                {
-                    user.CurrentBalance = new Balance();
-                    await _dbContext.SaveChangesAsync();
-                }
-
-                var balanceId = user.CurrentBalance.Id;
-
-                _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ, BalanceId = balanceId });
-                user.CurrentBalance.Summ += summ;
-
+                return NotFound($"Пользователь с id  {userId} не найден");
+            }
+            using var transaction = _dbContext.Database.BeginTransaction();
+            var balance = user.CurrentBalance;
+            if (balance == null)
+            {
+                user.CurrentBalance = new Balance();
                 await _dbContext.SaveChangesAsync();
-                return Ok();
             }
-            finally
+
+            var balanceId = user.CurrentBalance.Id;
+
+            while (!saved)
             {
-                semaphoreBalance.Release();
+                try
+                {
+                    user.CurrentBalance.Summ += summ;
+                    await _dbContext.SaveChangesAsync();
+                    var bt = new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ, BalanceId = balanceId };
+                    _dbContext.BalanceTransaction.Add(bt);
+                    // Attempt to save changes to the database
+                    _dbContext.SaveChanges();
+                    saved = true;
+                    var cnt = _dbContext.BalanceTransaction.Count();
+                    transaction.Commit();
+                    return Ok();
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    var cnt = _dbContext.BalanceTransaction.Count();
+                    foreach (var entry in ex.Entries)
+                    {
+                        if (entry.Entity is Balance)
+                        {
+                            var proposedValues = entry.CurrentValues;
+                            var databaseValues = entry.GetDatabaseValues();
+
+                            //var databaseBalance = (Balance)databaseValues.ToObject();
+
+                            foreach (var property in proposedValues.Properties)
+                            {
+                                proposedValues[property] = databaseValues[property];
+                            }
+
+                            // Refresh original values to bypass next concurrency check
+                            entry.OriginalValues.SetValues(databaseValues);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException(
+                                "Don't know how to handle concurrency conflicts for "
+                                + entry.Metadata.Name);
+                        }
+                    }
+                }
             }
+
+            return Ok();
+
         }
 
         /// <summary>

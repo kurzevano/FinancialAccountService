@@ -1,7 +1,9 @@
 ﻿using FinancialAccountService.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -50,9 +52,7 @@ namespace FinancialAccount.Tests
         {
             fakeUsers = new List<User>();
             var dbName = Guid.NewGuid().ToString();
-            using var dbContext = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
-           .UseInMemoryDatabase(databaseName: dbName)
-           .Options);
+            using var dbContext = CreateDbContext(dbName);
 
             if (!dbContext.Set<User>().Any())
             {
@@ -63,6 +63,20 @@ namespace FinancialAccount.Tests
             }
 
             return dbName;
+        }
+
+        internal static void DeleteTestDatabase(string databaseName)
+        {
+            File.Delete(databaseName);
+        }
+
+            internal static FinancialAccountDbContext CreateDbContext(string databaseName)
+        {
+            var context = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
+                    .UseSqlite($"Filename={databaseName}")
+                    .Options);
+            context.Database.Migrate();
+            return context;
         }
     }
 }

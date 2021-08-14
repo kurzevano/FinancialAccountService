@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinancialAccountService.Migrations
 {
     [DbContext(typeof(FinancialAccountDbContext))]
-    [Migration("20210809162452_InitialCreate")]
+    [Migration("20210814155349_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,7 @@ namespace FinancialAccountService.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Summ")
+                        .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
