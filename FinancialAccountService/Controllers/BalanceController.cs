@@ -33,7 +33,7 @@ namespace FinancialAccountService.Controllers
         [HttpGet("Balance/{userId}")]
         public async Task<ActionResult<decimal>> GetBalance(int userId)
         {
-            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            var user = await _dbContext.User.AsNoTracking().Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
@@ -76,7 +76,6 @@ namespace FinancialAccountService.Controllers
             if (balance == null)
             {
                 user.CurrentBalance = new Balance();
-                //await _dbContext.SaveChangesAsync();
             }
 
             var balanceId = user.CurrentBalance.Id;
@@ -107,8 +106,6 @@ namespace FinancialAccountService.Controllers
                             var proposedValues = entry.CurrentValues;
                             var databaseValues = entry.GetDatabaseValues();
 
-                            //var databaseBalance = (Balance)databaseValues.ToObject();
-
                             foreach (var property in proposedValues.Properties)
                             {
                                 proposedValues[property] = databaseValues[property];
@@ -128,7 +125,6 @@ namespace FinancialAccountService.Controllers
             }
 
             return Ok();
-
         }
 
         /// <summary>

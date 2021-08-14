@@ -53,7 +53,7 @@ namespace FinancialAccount.Tests
         /// Каждому пользователю один раз пополняет баланс, разные пользователи в разных потоках
         /// </summary>
         [Test]
-        public void TestWithdraw_multipleDbContext()
+        public void OneTransactionPerUser()
         {
             // act
 
@@ -71,18 +71,23 @@ namespace FinancialAccount.Tests
 
             // assert
 
+            // В этом тесте не предусмотрена проверка достаточности средств при снятии
+            Assert.IsTrue(initialSum >= sumToWithdraw);
+
+            var restSum = initialSum - sumToWithdraw;
+
             using var dbContext = TestUtils.CreateDbContext(databaseName);
 
             var balanceController = new BalanceController((FinancialAccountDbContext)dbContext);
 
-            fakesUsers.ForEach(user => Assert.AreEqual(balanceController.GetBalance(user.Id).GetAwaiter().GetResult().Value, initialSum - sumToWithdraw));
+            fakesUsers.ForEach(user => Assert.AreEqual(balanceController.GetBalance(user.Id).GetAwaiter().GetResult().Value, restSum));
         }
 
         /// <summary>
         /// У каждого пользователя многопоточно списывает сумму с баланса
         /// </summary>
         [Test]
-        public void BalanceWithdrawTest()
+        public void SeveralTransactionsPerUser()
         {
             // act
             foreach (var user in fakesUsers)

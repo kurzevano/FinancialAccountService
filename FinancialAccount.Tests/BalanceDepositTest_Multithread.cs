@@ -48,7 +48,7 @@ namespace FinancialAccount.Tests
         /// Каждому пользователю один раз пополняет баланс, разные пользователи в разных потоках
         /// </summary>
         [Test]
-        public void TestDeposit_multipleDbContext()
+        public void OneTransactionPerUser()
         {
             // act
 
@@ -77,7 +77,7 @@ namespace FinancialAccount.Tests
         /// Каждому пользователю многопоточно пополняет баланс
         /// </summary>
         [Test]
-        public void BalanceDepositTest()
+        public void SeveralTransactionsPerUser()
         {
             // act
 
