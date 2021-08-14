@@ -66,7 +66,7 @@ namespace FinancialAccountService.Controllers
 
             var saved = false;
 
-            var user = await _dbContext.User.Include(x => x.CurrentBalance).Include(b => b.CurrentBalance.BalanceTransactions).FirstOrDefaultAsync(User => User.Id == userId);
+            var user = await _dbContext.User.Include(x => x.CurrentBalance).ThenInclude(b => b.BalanceTransactions).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
             {
                 return NotFound($"Пользователь с id  {userId} не найден");
@@ -76,7 +76,7 @@ namespace FinancialAccountService.Controllers
             if (balance == null)
             {
                 user.CurrentBalance = new Balance();
-                await _dbContext.SaveChangesAsync();
+                //await _dbContext.SaveChangesAsync();
             }
 
             var balanceId = user.CurrentBalance.Id;
@@ -90,10 +90,11 @@ namespace FinancialAccountService.Controllers
                     var bt = new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ, BalanceId = balanceId };
                     _dbContext.BalanceTransaction.Add(bt);
                     // Attempt to save changes to the database
-                    _dbContext.SaveChanges();
-                    saved = true;
+                    await _dbContext.SaveChangesAsync();
+                   
                     var cnt = _dbContext.BalanceTransaction.Count();
                     transaction.Commit();
+                    saved = true;
                     return Ok();
                 }
                 catch (DbUpdateConcurrencyException ex)
@@ -146,9 +147,9 @@ namespace FinancialAccountService.Controllers
                 return ValidationProblem($"Неверно указана сумма");
             }
 
-            await semaphoreBalance.WaitAsync();
-            try
-            {
+
+            //await semaphoreBalance.WaitAsync();
+
                 var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
                 if (user == null)
                 {
@@ -168,17 +169,54 @@ namespace FinancialAccountService.Controllers
                     return BadRequest("Недостаточно средств для списания");
                 }
 
-                var balanceId = user.CurrentBalance.Id;
-                _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ, BalanceId = balanceId });
-                user.CurrentBalance.Summ -= summ;
+            using var transaction = _dbContext.Database.BeginTransaction();
 
-                await _dbContext.SaveChangesAsync();
-                return Ok();
-            }
-            finally
+            var isSaved = false;
+            while (!isSaved)
             {
-                semaphoreBalance.Release();
-            }
+                try
+                {
+                    var balanceId = user.CurrentBalance.Id;
+                    user.CurrentBalance.Summ -= summ;
+
+                    await _dbContext.SaveChangesAsync();
+
+                    _dbContext.BalanceTransaction.Add(new BalanceTransaction() { OperationTtype = Convert.ToBoolean(0), Summ = summ, BalanceId = balanceId });
+                    await _dbContext.SaveChangesAsync();
+
+                    transaction.Commit();
+                    isSaved = true;
+                    return Ok();
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    foreach (var entry in ex.Entries)
+                    {
+                        if (entry.Entity is Balance)
+                        {
+                            var proposedValues = entry.CurrentValues;
+                            var databaseValues = entry.GetDatabaseValues();
+
+                            foreach (var property in proposedValues.Properties)
+                            {
+                                proposedValues[property] = databaseValues[property];
+                            }
+
+                            // Refresh original values to bypass next concurrency check
+                            entry.OriginalValues.SetValues(databaseValues);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException(
+                                "Don't know how to handle concurrency conflicts for "
+                                + entry.Metadata.Name);
+                        }
+                    }
+                }
+                }
+
+            return Ok();
+
         }
     }
 }

@@ -18,6 +18,11 @@ namespace FinancialAccount.Tests
         const decimal initialSum = 100;
 
         /// <summary>
+        /// Тестовая сумма для снятия
+        /// </summary>
+        const decimal sumToWithdraw = 42;
+
+        /// <summary>
         /// Количество потоков в тесте
         /// </summary>
         const int threadNumber = 10;
@@ -36,6 +41,41 @@ namespace FinancialAccount.Tests
         public void Setup()
         {
             databaseName = TestUtils.CreateTestDatabase(out fakesUsers, initialSum);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            TestUtils.DeleteTestDatabase(databaseName);
+        }
+
+        /// <summary>
+        /// Каждому пользователю один раз пополняет баланс, разные пользователи в разных потоках
+        /// </summary>
+        [Test]
+        public void TestWithdraw_multipleDbContext()
+        {
+            // act
+
+            Parallel.ForEach(fakesUsers, new ParallelOptions() { MaxDegreeOfParallelism = threadNumber }, user =>
+            {
+                using var dbContext = TestUtils.CreateDbContext(databaseName);
+
+                var balanceController = new BalanceController(dbContext);
+                balanceController.Withdraw(new FinancialAccountService.Dto.ChangeBalanceDto()
+                {
+                    UserId = user.Id,
+                    Summ = sumToWithdraw
+                }).GetAwaiter().GetResult();
+            });
+
+            // assert
+
+            using var dbContext = TestUtils.CreateDbContext(databaseName);
+
+            var balanceController = new BalanceController((FinancialAccountDbContext)dbContext);
+
+            fakesUsers.ForEach(user => Assert.AreEqual(balanceController.GetBalance(user.Id).GetAwaiter().GetResult().Value, initialSum - sumToWithdraw));
         }
 
         /// <summary>
