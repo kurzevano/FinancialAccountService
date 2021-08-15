@@ -65,12 +65,21 @@ namespace FinancialAccount.Tests
             return dbName;
         }
 
+        /// <summary>
+        /// Удаляет файл с базой данных
+        /// </summary>
+        /// <param name="databaseName"></param>
         internal static void DeleteTestDatabase(string databaseName)
         {
             File.Delete(databaseName);
         }
 
-            internal static FinancialAccountDbContext CreateDbContext(string databaseName)
+        /// <summary>
+        /// Создаёт новый dbContext для базы данных с указанным именем
+        /// </summary>
+        /// <param name="databaseName">Имя базы данных</param>
+        /// <returns></returns>
+        internal static FinancialAccountDbContext CreateDbContext(string databaseName)
         {
             var context = new FinancialAccountDbContext(new DbContextOptionsBuilder<FinancialAccountDbContext>()
                     .UseSqlite($"Filename={databaseName}")

@@ -15,9 +15,6 @@ namespace FinancialAccountService.Controllers
     [ApiController]
     public class BalanceController : ControllerBase
     {
-        // Семафор для блокировки одновременного доступа к балансу пользователя
-        private static SemaphoreSlim semaphoreBalance = new SemaphoreSlim(1, 1);
-
         private readonly FinancialAccountDbContext _dbContext;
 
         public BalanceController(FinancialAccountDbContext dbContext)
@@ -64,7 +61,7 @@ namespace FinancialAccountService.Controllers
                 return ValidationProblem($"Неверно указана сумма");
             }
 
-            var saved = false;
+            var isSaved = false;
 
             var user = await _dbContext.User.Include(x => x.CurrentBalance).ThenInclude(b => b.BalanceTransactions).FirstOrDefaultAsync(User => User.Id == userId);
             if (user == null)
@@ -80,20 +77,23 @@ namespace FinancialAccountService.Controllers
 
             var balanceId = user.CurrentBalance.Id;
 
-            while (!saved)
+            while (!isSaved)
             {
                 try
                 {
                     user.CurrentBalance.Summ += summ;
                     await _dbContext.SaveChangesAsync();
-                    var bt = new BalanceTransaction() { OperationTtype = Convert.ToBoolean(1), Summ = summ, BalanceId = balanceId };
+                    var bt = new BalanceTransaction()
+                    {
+                        OperationTtype = Convert.ToBoolean(1),
+                        Summ = summ,
+                        BalanceId = balanceId
+                    };
+
                     _dbContext.BalanceTransaction.Add(bt);
-                    // Attempt to save changes to the database
                     await _dbContext.SaveChangesAsync();
-                   
-                    var cnt = _dbContext.BalanceTransaction.Count();
                     transaction.Commit();
-                    saved = true;
+                    isSaved = true;
                     return Ok();
                 }
                 catch (DbUpdateConcurrencyException ex)
@@ -142,28 +142,24 @@ namespace FinancialAccountService.Controllers
             {
                 return ValidationProblem($"Неверно указана сумма");
             }
+            var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
+            if (user == null)
+            {
+                return NotFound($"Пользователь с id  {userId} не найден");
+            }
 
+            var balance = user.CurrentBalance;
+            if (balance == null)
+            {
+                return NotFound($"Не найдена информация о балансе для пользователя с id  {userId}");
+            }
 
-            //await semaphoreBalance.WaitAsync();
+            var isEnough = balance.Summ > summ;
 
-                var user = await _dbContext.User.Include(x => x.CurrentBalance).FirstOrDefaultAsync(User => User.Id == userId);
-                if (user == null)
-                {
-                    return NotFound($"Пользователь с id  {userId} не найден");
-                }
-
-                var balance = user.CurrentBalance;
-                if (balance == null)
-                {
-                    return NotFound($"Не найдена информация о балансе для пользователя с id  {userId}");
-                }
-
-                var isEnough = balance.Summ > summ;
-
-                if (!isEnough)
-                {
-                    return BadRequest("Недостаточно средств для списания");
-                }
+            if (!isEnough)
+            {
+                return BadRequest("Недостаточно средств для списания");
+            }
 
             using var transaction = _dbContext.Database.BeginTransaction();
 
@@ -209,7 +205,7 @@ namespace FinancialAccountService.Controllers
                         }
                     }
                 }
-                }
+            }
 
             return Ok();
 
